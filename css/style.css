@@ -1,0 +1,46 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.width120 {
+    width: 120px;
+}
+
+.width150 {
+    width: 150px;
+}
+
+.term {
+    display: inline-block;
+}
+
+.gui-nav-container {
+    display: flex;
+}
+
+.gui-container {
+    width: 100%;
+    display: flex;
+    padding: 24px;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.gui-row {
+    width: 1140px;
+}
+
+.gui-item {
+    width: 100%;
+    border: 1px solid #000;
+}
+
+.el-row {
+    margin-bottom: 20px;
+}
+
+.environment {
+    height: 345px;
+}

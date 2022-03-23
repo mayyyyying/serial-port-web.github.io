@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <!-- import CSS -->
+    <link rel="stylesheet" href="./css/element-ui.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+</head>
+
+<body>
+    <div id="app">
+        <el-menu :default-active="activeIndex" class="gui-nav-container" mode="horizontal" @select="handleSelect">
+            <el-menu-item class="nav-logo"><b>Sun Tracker GUI v1.0</b></el-menu-item>
+            <el-menu-item class="nav-item" index="0">GUI</el-menu-item>
+            <el-menu-item class="nav-item" index="1"> {{ $t('aboutMe') }}</el-menu-item>
+            <el-menu-item class="nav-item" @click="downloadLog"> {{ $t('download') }}</el-menu-item>
+            <el-menu-item class="nav-item" index="4"> {{ $t('documents') }}</el-menu-item>
+            <el-menu-item class="nav-item" index="6"> {{ $t('help') }}</el-menu-item>
+            <el-menu-item class="nav-item" @click="changeLanguage">中文/English</el-menu-item>
+        </el-menu>
+        <div class="gui-container">
+            <div class="gui-row">
+                <el-form label-width="100px" :inline="true" label-position="left" size="small">
+                    <el-row :gutter="20">
+                        <el-col :span="12">
+                            <el-card shadow="hover">
+                                <div slot="header" class="clearfix">
+                                    {{ $t('wirelessSerialCommunication') }}
+                                </div>
+                                <el-form-item :label="$t('baudRate')">
+                                    <el-select v-model="baudRate" :disabled="connectStatus"
+                                        :placeholder="$t('baudRateHolder')">
+                                        <el-option :value="115200">115200</el-option>
+                                        <el-option :value="1200">1200</el-option>
+                                        <el-option :value="2400">2400</el-option>
+                                        <el-option :value="4800">4800</el-option>
+                                        <el-option :value="9600">9600</el-option>
+                                        <el-option :value="19200">19200</el-option>
+                                        <el-option :value="38400">38400</el-option>
+                                        <el-option :value="57600">57600</el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-button size="small" type="primary" @click="this.getReader">
+                                    {{connectStatus?$t('disconnect'):$t('connect')}}
+                                </el-button>
+                                <div class="term" ref="term" id="term"></div>
+                            </el-card>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-card shadow="hover">
+                                <div slot="header" class="clearfix">
+                                    {{ $t('environmentalStateDetection') }}
+                                </div>
+                                <div class="environment">
+                                    <el-form-item :label="$t('longitude')">
+                                        <el-input class="width120" :value="environmentState.longitude"
+                                            :placeholder="$t('longitude')" />
+                                    </el-form-item>
+                                    <el-form-item :label="$t('latitude')">
+                                        <el-input class="width120" :value="environmentState.latitude"
+                                            :placeholder="$t('latitude')" />
+                                    </el-form-item>
+                                    <el-form-item :label="$t('localTime')">
+                                        <el-input :value="environmentState.localTime" :placeholder="$t('localTime')" />
+                                    </el-form-item>
+                                    <el-form-item :label="$t('localTemperature')">
+                                        <el-input class="width120" :value="environmentState.localTemperature"
+                                            :placeholder="$t('localTemperature')" />
+                                    </el-form-item>
+                                    <el-form-item :label="$t('localHumidity')">
+                                        <el-input class="width120" :value="environmentState.localHumidity"
+                                            :placeholder="$t('localHumidity')" />
+                                    </el-form-item>
+                                    <el-form-item :label="$t('localWindSpeed')">
+                                        <el-input class="width120" :value="environmentState.localWindSpeed"
+                                            :placeholder="$t('localWindSpeed')" />
+                                    </el-form-item>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="20">
+                        <el-col :span="14">
+                            <el-card shadow="hover">
+                                <div slot="header" class="clearfix">
+                                    {{ $t('supportState') }}
+                                </div>
+                                <div>
+                                    <el-form-item :label="$t('standNumber')">
+                                        <el-select class="width150" v-model="supportState.standNumber"
+                                            :placeholder="$t('standNumber')">
+                                            <el-option :value="115200">115200</el-option>
+                                            <el-option :value="1200">1200</el-option>
+                                            <el-option :value="2400">2400</el-option>
+                                            <el-option :value="4800">4800</el-option>
+                                            <el-option :value="9600">9600</el-option>
+                                            <el-option :value="19200">19200</el-option>
+                                            <el-option :value="38400">38400</el-option>
+                                            <el-option :value="57600">57600</el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item :label="$t('stentsAbnormalAlarm')">
+                                        <el-input class="width150" :value="supportState.stentsAbnormalAlarm"
+                                            :placeholder="$t('stentsAbnormalAlarm')" />
+                                    </el-form-item>
+                                    <el-form-item :label="$t('componentAngle')">
+                                        <el-input class="width150" :value="supportState.componentAngle"
+                                            :placeholder="$t('componentAngle')">
+                                            <template slot="append">°</template>
+                                        </el-input>
+                                    </el-form-item>
+                                    <el-form-item :label="$t('motorBattery')">
+                                        <el-input class="width150" :value="supportState.motorBattery"
+                                            :placeholder="$t('motorBattery')">
+                                            <template slot="append">%</template>
+                                        </el-input>
+                                    </el-form-item>
+                                    <el-form-item :label="$t('motorVoltage')">
+                                        <el-input class="width150" :value="supportState.motorVoltage"
+                                            :placeholder="$t('motorVoltage')">
+                                            <template slot="append">V</template>
+                                        </el-input>
+                                    </el-form-item>
+                                    <el-form-item :label="$t('motorCurrent')">
+                                        <el-input class="width150" :value="supportState.motorCurrent"
+                                            :placeholder="$t('motorCurrent')">
+                                            <template slot="append">A</template>
+                                        </el-input>
+                                    </el-form-item>
+                                </div>
+                            </el-card>
+                        </el-col>
+                        <el-col :span="10">
+                            <el-card shadow="hover">
+                                <div slot="header" class="clearfix">
+                                    {{ $t('supportControlPanel') }}
+                                </div>
+                                <div>
+                                    <el-form-item :label="$t('standNumber')">
+                                        <el-select :placeholder="$t('standNumber')">
+                                            <el-option :value="115200">115200</el-option>
+                                            <el-option :value="1200">1200</el-option>
+                                            <el-option :value="2400">2400</el-option>
+                                            <el-option :value="4800">4800</el-option>
+                                            <el-option :value="9600">9600</el-option>
+                                            <el-option :value="19200">19200</el-option>
+                                            <el-option :value="38400">38400</el-option>
+                                            <el-option :value="57600">57600</el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item :label="$t('controlMode')">
+                                        <el-button @click="autoButtonClick" size="small">{{ $t('automaticMode') }}
+                                        </el-button>
+                                        <el-button @click="resetButtonClick" size="small">{{ $t('masterReset') }}
+                                        </el-button>
+                                    </el-form-item>
+                                    <el-form-item :label="$t('angleControl')">
+                                        <el-input class="width150" v-model="componentAngle"
+                                            :placeholder="$t('componentAngle')">
+                                            <template slot="append">°</template>
+                                        </el-input>
+                                        <el-button size="small" @click="turningButtonClick">{{
+                                            $t('turnToSpecifiedAngle') }}</el-button>
+                                    </el-form-item>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </el-form>
+            </div>
+        </div>
+    </div>
+</body>
+<!-- dayjs -->
+<script src="./js/dayjs.min.js"></script>
+<!-- termjs -->
+<script src="./js/term.js"></script>
+<script src="./js/debugout.js"></script>
+<!-- import Vue before Element -->
+<script src="./js/vue.min.js"></script>
+<!-- impornt in18 -->
+<script src="./js/vue-i18n.min.js"></script>
+<script src="./locale/index.js"></script>
+<!-- import JavaScript -->
+<script src="./js/element-ui.min.js"></script>
+
+
+<script>
+    var i18n = new VueI18n({
+        locale: 'zh',
+        messages
+    })
+
+
+    new Vue({
+        el: "#app",
+        i18n,
+        data: function () {
+            return {
+                // 语言
+                lang: "zh",
+                // 当前时间计时器
+                currentTimer: null,
+                // 导航激活项
+                activeIndex: "1",
+                // 波特率
+                baudRate: undefined,
+                // 终端
+                term: undefined,
+                // 日志
+                bugout: undefined,
+                // 串口
+                port: undefined,
+                // 连接状态
+                connectStatus: false,
+                // 转向角度
+                componentAngle: undefined,
+                // 环境状态
+                environmentState: {
+                    // 经度
+                    longitude: undefined,
+                    // 经度
+                    latitude: undefined,
+                    // 当地时间
+                    localTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                    // 当地温度
+                    localTemperature: undefined,
+                    // 当地湿度
+                    localHumidity: undefined,
+                    // 当地风速
+                    localWindSpeed: undefined
+                },
+                // 支架状态信息
+                supportState: {
+                    // 支架编号
+                    standNumber: undefined,
+                    // 组件倾角
+                    componentAngle: undefined,
+                    // 电池电量
+                    motorBattery: undefined,
+                    // 电机电压
+                    motorVoltage: undefined,
+                    // 电机电流
+                    motorCurrent: undefined,
+                    // 支架异常报警
+                    stentsAbnormalAlarm: undefined,
+                }
+            };
+        },
+        mounted() {
+            this.bugout = new debugout();
+            this.term = new Terminal({
+                cols: 70,
+                rows: 20,
+                useStyle: true,
+                screenKeys: true,
+                cursorBlink: false
+            });
+            this.term.open(this.$refs.term);
+            this.currentTimer = setInterval(() => {
+                this.environmentState.localTime = dayjs().format('YYYY-MM-DD HH:mm:ss');
+            }, 100)
+
+        },
+        methods: {
+            // 切换语言
+            changeLanguage() {
+                if (this.lang === 'zh') {
+                    this.lang = 'en';
+                    this.$i18n.locale = this.lang;
+                    localStorage.setItem("LANGUAGE", this.lang);
+                } else {
+                    this.lang = 'zh';
+                    this.$i18n.locale = this.lang;
+                    localStorage.setItem("LANGUAGE", this.lang);
+                }
+            },
+            // 日志下载
+            downloadLog() {
+                this.bugout.downloadLog();
+            },
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            // 连接按钮点击事件
+            async getReader() {
+                // 判断连接状态
+                if (this.connectStatus) {
+                    try {
+                        // 断开链接
+                        this.port.close();
+                        this.port = undefined;
+                        this.term.write('\x1b[31mDisconnected from Serial Port\x1b[m\r\n');
+                    } catch (err) {
+                        this.$message({
+                            message: err,
+                            type: 'error'
+                        });
+                        return
+                    }
+                    return
+                }
+                // 判断浏览器是否支持串口通信
+                if (!('serial' in navigator)) {
+                    this.$message({
+                        message: '对串行web的支持未启用。请启用它使用chrome://flags/和启用实验web平台功能',
+                        type: 'warning'
+                    });
+                    return
+                }
+                // 判断是否选择播率
+                if (!this.baudRate) {
+                    this.$message({
+                        message: '请选择波特率',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                try {
+                    const port = await navigator.serial.requestPort({});
+                    this.port = port;
+                    await port.open({ baudRate: this.baudRate });
+                    this.connectStatus = true;
+                    this.term.write('\x1b[31mConnect Success !\x1b[m\r\n');
+                    const appendStream = new WritableStream({
+                        write(chunk) {
+                            this.term.write(chunk);
+                            bugout.log(chunk);
+                        }
+                    });
+                    port.readable
+                        .pipeThrough(new TextDecoderStream())
+                        .pipeTo(appendStream);
+                    this.term.on('data', (data) => {
+                        this.serialWrite(data);
+                    });
+                } catch (err) {
+                    this.$message({
+                        message: err,
+                        type: 'error'
+                    });
+                }
+            },
+            // 写入事件
+            serialWrite(data) {
+                const encoder = new TextEncoder();
+                const dataArrayBuffer = encoder.encode(data);
+                if (this.port && this.port.writable) {
+                    const writer = this.port.writable.getWriter();
+                    writer.write(dataArrayBuffer);
+                    writer.releaseLock();
+                }
+            },
+            // 自动模式按钮
+            autoButtonClick() {
+                this.$message({
+                    message: "自动模式点击",
+                    type: 'success'
+                });
+
+            },
+            // 重置按钮
+            resetButtonClick() {
+                this.$message({
+                    message: "重置按钮点击",
+                    type: 'success'
+                });
+            },
+            // 转向按钮点击
+            turningButtonClick() {
+                this.$message({
+                    message: `转向按钮点击，角度为${this.componentAngle}°`,
+                    type: 'success'
+                });
+            }
+        },
+
+    });
+</script>
+
+</html>
